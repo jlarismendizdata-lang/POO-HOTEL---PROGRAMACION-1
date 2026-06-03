@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel PMS — Sistema de Gestión Hotelera</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* ============================================
+   VARIABLES DE DISEÑO
+   ============================================ */
+:root {
+  --bg: #f0f2f7;
+  --fg: #1e293b;
+  --muted: #64748b;
+  --accent: #c8a45c;
+  --accent-light: #dbb870;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --sidebar-bg: #0c1222;
+  --sidebar-hover: #162033;
+  --sidebar-active: #1a2844;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #0ea5e9;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.1);
+}
+
+/* ============================================
+   RESET Y BASE
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  display: flex;
+  overflow-x: hidden;
+}
+h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+input, select, textarea, button { font-family: 'DM Sans', sans-serif; }
+a { text-decoration: none; color: inherit; }
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0c1222 0%, #111a2e 100%);
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(200,164,92,0.1);
+  transition: transform 0.3s ease;
+}
+.sidebar-brand {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-brand h1 {
+  font-size: 1.35rem;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+.sidebar-brand p {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 500;
+}
+.sidebar-nav { flex: 1; padding: 16px 12px; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-radius: 10px;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.88rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s ease;
+  margin-bottom: 2px; position: relative;
+}
+.nav-item i { width: 20px; text-align: center; font-size: 0.95rem; }
+.nav-item:hover { background: var(--sidebar-hover); color: rgba(255,255,255,0.85); }
+.nav-item.active {
+  background: var(--sidebar-active);
+  color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.nav-item .badge {
+  margin-left: auto;
+  background: var(--accent);
+  color: #0c1222;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-footer button {
+  width: 100%;
+  background: rgba(200,164,92,0.1);
+  border: 1px solid rgba(200,164,92,0.2);
+  color: var(--accent);
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.sidebar-footer button:hover { background: rgba(200,164,92,0.2); }
+
+/* ============================================
+   CONTENIDO PRINCIPAL
+   ============================================ */
+.main {
+  margin-left: 260px;
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  background: var(--card);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.topbar-title h2 { font-size: 1.4rem; color: var(--fg); }
+.topbar-title p { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+.topbar-actions { display: flex; gap: 12px; align-items: center; }
+.content {
+  flex: 1;
+  padding: 28px 32px;
+  padding-bottom: 80px;
+}
+
+/* ============================================
+   TARJETAS DE ESTADÍSTICAS
+   ============================================ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.stat-card.gold::before { background: var(--accent); }
+.stat-card.green::before { background: var(--success); }
+.stat-card.blue::before { background: var(--info); }
+.stat-card.red::before { background: var(--danger); }
+.stat-card .stat-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; margin-bottom: 14px;
+}
+.stat-card.gold .stat-icon { background: rgba(200,164,92,0.12); color: var(--accent); }
+.stat-card.green .stat-icon { background: rgba(16,185,129,0.1); color: var(--success); }
+.stat-card.blue .stat-icon { background: rgba(14,165,233,0.1); color: var(--info); }
+.stat-card.red .stat-icon { background: rgba(239,68,68,0.1); color: var(--danger); }
+.stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--fg); }
+.stat-card .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ============================================
+   SECCIONES Y PANELES
+   ============================================ */
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.section-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.panel {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.panel-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-header h3 { font-size: 1rem; color: var(--fg); }
+.panel-body { padding: 18px 22px; }
+.panel-full { grid-column: 1 / -1; }
+
+/* ============================================
+   TABLAS
+   ============================================ */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+thead th {
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--border);
+}
+tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: #f8f9fc; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* ============================================
+   BADGES / ETIQUETAS DE ESTADO
+   ============================================ */
+.badge-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 600;
+  text-transform: capitalize;
+}
+.badge-status.disponible { background: rgba(16,185,129,0.1); color: #059669; }
+.badge-status.ocupada { background: rgba(239,68,68,0.1); color: #dc2626; }
+.badge-status.activa { background: rgba(14,165,233,0.1); color: #0284c7; }
+.badge-status.cancelada { background: rgba(100,116,139,0.12); color: #64748b; }
+.badge-status.pendiente { background: rgba(245,158,11,0.12); color: #d97706; }
+.badge-status.pagada { background: rgba(16,185,129,0.1); color: #059669; }
+.badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  display: inline-block;
+}
+.badge-dot.disponible { background: #10b981; }
+.badge-dot.ocupada { background: #ef4444; }
+.badge-dot.activa { background: #0ea5e9; }
+.badge-dot.cancelada { background: #94a3b8; }
+.badge-dot.pendiente { background: #f59e0b; }
+.badge-dot.pagada { background: #10b981; }
+
+/* ============================================
+   BOTONES
+   ============================================ */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: 8px;
+  font-size: 0.82rem; font-weight: 600;
+  border: none; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #0c1222; }
+.btn-primary:hover { background: var(--accent-light); transform: translateY(-1px); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--fg); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #059669; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #dc2626; }
+.btn-sm { padding: 6px 12px; font-size: 0.76rem; }
+.btn-icon {
+  width: 34px; height: 34px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--card); cursor: pointer; color: var(--muted);
+  transition: all 0.2s;
+}
+.btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ============================================
+   TARJETAS DE HABITACIÓN
+   ============================================ */
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.room-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.room-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.room-card-header {
+  padding: 16px 18px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.room-card-header .room-num { font-weight: 700; font-size: 1.1rem; }
+.room-card-body { padding: 0 18px 16px; }
+.room-card-body .room-type { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; }
+.room-card-body .room-details {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-size: 0.76rem; color: var(--muted);
+}
+.room-card-body .room-details span { display: flex; align-items: center; gap: 4px; }
+.room-card-body .room-price {
+  margin-top: 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.room-card-footer {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+
+/* ============================================
+   HOTEL CARD
+   ============================================ */
+.hotel-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.hotel-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.hotel-card-banner {
+  height: 120px;
+  position: relative;
+  display: flex; align-items: flex-end; padding: 16px 20px;
+}
+.hotel-card-banner.urbano { background: linear-gradient(135deg, #1a2844, #2d4a7a); }
+.hotel-card-banner.rural { background: linear-gradient(135deg, #1a3c2a, #2d6a4f); }
+.hotel-card-banner h3 { color: white; font-size: 1.15rem; position: relative; z-index: 1; }
+.hotel-card-banner .hotel-type-tag {
+  position: absolute; top: 14px; right: 14px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+  color: white; font-size: 0.7rem; font-weight: 600;
+  padding: 4px 10px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.hotel-card-body { padding: 18px 20px; }
+.hotel-card-body .hotel-info-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.82rem; color: var(--muted); margin-bottom: 8px;
+}
+.hotel-card-body .hotel-info-row i { width: 16px; color: var(--accent); }
+.hotel-card-body .hotel-avail {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.hotel-avail-bar {
+  flex: 1; height: 6px; background: var(--border);
+  border-radius: 3px; margin: 0 12px; overflow: hidden;
+}
+.hotel-avail-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: var(--success);
+  transition: width 0.6s ease;
+}
+.hotel-card-actions { padding: 0 20px 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(12,18,34,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--card);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  animation: slideUp 0.3s ease;
+}
+.modal-header {
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h3 { font-size: 1.15rem; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: none; background: var(--bg);
+  cursor: pointer; font-size: 1rem; color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.modal-close:hover { background: var(--danger); color: white; }
+.modal-body { padding: 20px 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+
+/* ============================================
+   FORMULARIOS
+   ============================================ */
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block; font-size: 0.78rem; font-weight: 600;
+  color: var(--muted); margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.form-control {
+  width: 100%; padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px; font-size: 0.88rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: white;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,164,92,0.15);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ============================================
+   TOAST / NOTIFICACIONES
+   ============================================ */
+.toast-container {
+  position: fixed; top: 20px; right: 20px;
+  z-index: 300;
+  display: flex; flex-direction: column; gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 14px 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.85rem; font-weight: 500;
+  pointer-events: auto;
+  animation: slideInRight 0.3s ease;
+  border-left: 4px solid var(--accent);
+  max-width: 380px;
+}
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--danger); }
+.toast.warning { border-left-color: var(--warning); }
+.toast i { font-size: 1.1rem; }
+.toast.success i { color: var(--success); }
+.toast.error i { color: var(--danger); }
+.toast.warning i { color: var(--warning); }
+
+/* ============================================
+   CONSOLA DEL SISTEMA (Log)
+   ============================================ */
+.log-panel {
+  position: fixed; bottom: 0; left: 260px; right: 0;
+  background: #0c1222;
+  color: #a3e635;
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  z-index: 90;
+  transition: height 0.3s ease;
+  overflow: hidden;
+  border-top: 2px solid rgba(200,164,92,0.3);
+}
+.log-panel.collapsed { height: 36px; }
+.log-panel.expanded { height: 240px; }
+.log-header {
+  padding: 8px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer;
+  background: rgba(200,164,92,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.log-header span { color: var(--accent); font-weight: 600; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; }
+.log-header button {
+  background: none; border: none; color: rgba(255,255,255,0.4);
+  cursor: pointer; font-size: 0.85rem; transition: color 0.2s;
+}
+.log-header button:hover { color: white; }
+.log-body {
+  padding: 10px 16px;
+  height: calc(100% - 36px);
+  overflow-y: auto;
+}
+.log-entry {
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  line-height: 1.5;
+}
+.log-entry .log-time { color: rgba(255,255,255,0.3); margin-right: 8px; }
+.log-entry .log-class { color: var(--accent); font-weight: 700; }
+.log-entry .log-method { color: #67e8f9; }
+.log-entry .log-data { color: #a3e635; }
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.animate-in { animation: fadeInUp 0.4s ease both; }
+.animate-in:nth-child(1) { animation-delay: 0.0s; }
+.animate-in:nth-child(2) { animation-delay: 0.06s; }
+.animate-in:nth-child(3) { animation-delay: 0.12s; }
+.animate-in:nth-child(4) { animation-delay: 0.18s; }
+
+/* Ocupación gauge */
+.gauge-wrap { display: flex; align-items: center; justify-content: center; padding: 10px 0; }
+.gauge { position: relative; width: 130px; height: 130px; }
+.gauge svg { transform: rotate(-90deg); }
+.gauge-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+.gauge-fill { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+.gauge-text {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.gauge-text .gauge-val { font-size: 1.8rem; font-weight: 700; color: var(--fg); }
+.gauge-text .gauge-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Timeline de actividad */
+.activity-list { list-style: none; }
+.activity-item {
+  display: flex; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.84rem;
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-top: 6px; flex-shrink: 0;
+}
+.activity-dot.reserva { background: var(--info); }
+.activity-dot.pago { background: var(--success); }
+.activity-dot.cancel { background: var(--danger); }
+.activity-dot.checkin { background: var(--accent); }
+.activity-time { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 48px 20px;
+  color: var(--muted);
+}
+.empty-state i { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; }
+.empty-state p { font-size: 0.9rem; }
+
+/* Toolbar */
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+.toolbar-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 7px 16px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--card);
+  font-size: 0.78rem; font-weight: 600; color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(200,164,92,0.06); }
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .log-panel { left: 0; }
+  .section-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .content { padding: 20px 16px; }
+  .mobile-toggle { display: flex !important; }
+}
+.mobile-toggle {
+  display: none;
+  width: 40px; height: 40px;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--card); cursor: pointer;
+  align-items: center; justify-content: center;
+  font-size: 1.1rem; color: var(--fg);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.log-body::-webkit-scrollbar-thumb { background: #334155; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     TOAST CONTAINER
+     ============================================ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============================================
+     MODAL OVERLAY
+     ============================================ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- ============================================
+     SIDEBAR
+     ============================================ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h1><i class="fas fa-concierge-bell" style="margin-right:6px"></i> Hotel PMS</h1>
+    <p>Sistema de Gestion</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" data-section="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</div>
+    <div class="nav-item" data-section="hoteles"><i class="fas fa-hotel"></i> Hoteles</div>
+    <div class="nav-item" data-section="habitaciones"><i class="fas fa-door-open"></i> Habitaciones <span class="badge" id="badgeRooms">0</span></div>
+    <div class="nav-item" data-section="huespedes"><i class="fas fa-user-friends"></i> Huespedes</div>
+    <div class="nav-item" data-section="empleados"><i class="fas fa-id-badge"></i> Empleados</div>
+    <div class="nav-item" data-section="reservas"><i class="fas fa-calendar-check"></i> Reservas <span class="badge" id="badgeReservas">0</span></div>
+    <div class="nav-item" data-section="facturas"><i class="fas fa-file-invoice-dollar"></i> Facturas</div>
+  </nav>
+  <div class="sidebar-footer">
+    <button onclick="resetSystem()"><i class="fas fa-rotate-right"></i> Reiniciar Sistema</button>
+  </div>
+</aside>
+
+<!-- ============================================
+     CONTENIDO PRINCIPAL
+     ============================================ -->
+<div class="main">
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">
+        <h2 id="topbarTitle">Dashboard</h2>
+        <p id="topbarSubtitle">Vista general del sistema hotelero</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" onclick="openNewReserva()"><i class="fas fa-plus"></i> Nueva Reserva</button>
+    </div>
+  </header>
+  <div class="content" id="mainContent"></div>
+</div>
+
+<!-- ============================================
+     CONSOLA DEL SISTEMA
+     ============================================ -->
+<div class="log-panel collapsed" id="logPanel">
+  <div class="log-header" onclick="toggleLog()">
+    <span><i class="fas fa-terminal" style="margin-right:6px"></i> Consola del Sistema — Salida Python Equivalente</span>
+    <button id="logToggleBtn"><i class="fas fa-chevron-up"></i></button>
+  </div>
+  <div class="log-body" id="logBody"></div>
+</div>
+
+<script>
+/* ==================================================================
+   SISTEMA DE GESTIÓN HOTELERA — Traducción de Python POO a JavaScript
+   Cada clase y método está mapeado directamente del código Python original.
+   ================================================================== */
+
+// ==================================================================
+// ESTADOS (Constantes) — Corresponden a EstadoHabitacion, EstadoReserva, EstadoPago
+// ==================================================================
+const EstadoHabitacion = { DISPONIBLE: "disponible", OCUPADA: "ocupada" };
+const EstadoReserva    = { ACTIVA: "activa", CANCELADA: "cancelada" };
+const EstadoPago       = { PENDIENTE: "pendiente", PAGADA: "pagada" };
+
+// Contadores auto-incrementales — Corresponden a itertools.count(1) en Python
+let reservaCounter  = 0;
+let facturaCounter  = 0;
+
+// ==================================================================
+// CLASE PERSONA — Corresponde a la clase abstracta Persona en Python
+// Propiedades: nombre, cedula, contacto, fechaNacimiento, direccion, rol
+// Metodos: calcularEdad() → calcular_edad() en Python
+// ==================================================================
+class Persona {
+  constructor(nombre, cedula, contacto, fechaNacimiento, direccion, rol) {
+    if (!nombre || !nombre.trim()) throw new Error("El nombre no puede estar vacío.");
+    if (!cedula || !cedula.trim()) throw new Error("La cédula no puede estar vacía.");
+    this._nombre           = nombre;
+    this._cedula           = cedula;
+    this._contacto         = contacto;
+    this._fechaNacimiento  = fechaNacimiento;
+    this._direccion        = direccion;
+    this._rol              = rol;
+  }
+  get nombre()           { return this._nombre; }
+  get cedula()           { return this._cedula; }
+  get contacto()         { return this._contacto; }
+  get fechaNacimiento()  { return this._fechaNacimiento; }
+  get direccion()        { return this._direccion; }
+  get rol()              { return this._rol; }
+
+  // calcular_edad() en Python
+  calcularEdad() {
+    const hoy  = new Date();
+    let edad   = hoy.getFullYear() - this._fechaNacimiento.getFullYear();
+    const m    = hoy.getMonth() - this._fechaNacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < this._fechaNacimiento.getDate())) edad--;
+    return edad;
+  }
+
+  // consultar_informacion() en Python — versión abstracta
+  consultarInformacion() { return ""; }
+}
+
+// ==================================================================
+// CLASE HUESPED — Corresponde a Huesped(Persona) en Python
+// Propiedades adicionales: nacionalidad, idioma
+// ==================================================================
+class Huesped extends Persona {
+  constructor(nombre, cedula, contacto, fechaNacimiento, direccion, nacionalidad, idioma) {
+    super(nombre, cedula, contacto, fechaNacimiento, direccion, "Huésped");
+    this._nacionalidad = nacionalidad;
+    this._idioma       = idioma;
+  }
+  get nacionalidad() { return this._nacionalidad; }
+  get idioma()       { return this._idioma; }
+
+  // consultar_informacion() en Python
+  consultarInformacion() {
+    return `[HUÉSPED]\n  Nombre: ${this.nombre}\n  Cédula: ${this.cedula}\n  Contacto: ${this.contacto}\n  Edad: ${this.calcularEdad()} años\n  Dirección: ${this.direccion}\n  Nacionalidad: ${this.nacionalidad}\n  Idioma: ${this.idioma}`;
+  }
+}
+
+// ==================================================================
+// CLASE EMPLEADOHOTEL — Corresponde a EmpleadoHotel(Persona) en Python
+// Propiedades adicionales: cargo, idiomas[]
+// ==================================================================
+class EmpleadoHotel extends Persona {
+  constructor(nombre, cedula, contacto, fechaNacimiento, direccion, cargo, idiomas) {
+    super(nombre, cedula, contacto, fechaNacimiento, direccion, "Empleado");
+    if (!idiomas || idiomas.length === 0) throw new Error("El empleado debe hablar al menos un idioma.");
+    this._cargo   = cargo;
+    this._idiomas = [...idiomas]; // copia defensiva
+  }
+  get cargo()    { return this._cargo; }
+  get idiomas()  { return [...this._idiomas]; }
+
+  consultarInformacion() {
+    return `[EMPLEADO]\n  Nombre: ${this.nombre}\n  Cédula: ${this.cedula}\n  Contacto: ${this.contacto}\n  Edad: ${this.calcularEdad()} años\n  Cargo: ${this.cargo}\n  Idiomas: ${this.idiomas.join(', ')}`;
+  }
+}
+
+// ==================================================================
+// CLASE HABITACION — Corresponde a la clase abstracta Habitacion en Python
+// Propiedades: numero, precioNoche, estado, aforoMaximo, cantidadCamas,
+//              cantidadBanos, aireAcondicionado
+// Metodos: estaDisponible, marcarOcupada(), marcarDisponible()
+// ==================================================================
+class Habitacion {
+  constructor(numero, precioNoche, estado, aforoMaximo, cantidadCamas, cantidadBanos, aireAcondicionado, hotelNombre) {
+    if (precioNoche <= 0) throw new Error("El precio por noche debe ser positivo.");
+    if (aforoMaximo <= 0) throw new Error("El aforo máximo debe ser al menos 1.");
+    this._numero             = numero;
+    this._precioNoche        = precioNoche;
+    this._estado             = estado;
+    this._aforoMaximo        = aforoMaximo;
+    this._cantidadCamas      = cantidadCamas;
+    this._cantidadBanos      = cantidadBanos;
+    this._aireAcondicionado  = aireAcondicionado;
+    this._hotelNombre        = hotelNombre || ""; // Asociacion UI (no en Python original)
+  }
+  get numero()            { return this._numero; }
+  get precioNoche()       { return this._precioNoche; }
+  get estado()            { return this._estado; }
+  get aforoMaximo()       { return this._aforoMaximo; }
+  get cantidadCamas()     { return this._cantidadCamas; }
+  get cantidadBanos()     { return this._cantidadBanos; }
+  get aireAcondicionado() { return this._aireAcondicionado; }
+  get hotelNombre()       { return this._hotelNombre; }
+
+  // esta_disponible (property) en Python
+  get estaDisponible() { return this._estado === EstadoHabitacion.DISPONIBLE; }
+
+  // marcar_ocupada() en Python
+  marcarOcupada()   { this._estado = EstadoHabitacion.OCUPADA; }
+  // marcar_disponible() en Python
+  marcarDisponible() { this._estado = EstadoHabitacion.DISPONIBLE; }
+
+  consultarInformacion() { return ""; }
+}
+
+// ==================================================================
+// CLASE HABITACIONINDIVIDUAL — Corresponde a HabitacionIndividual(Habitacion)
+// Propiedades adicionales: espacioAbierto, tieneTelevisor
+// aforoMaximo siempre = 1
+// ==================================================================
+class HabitacionIndividual extends Habitacion {
+  constructor(numero, precioNoche, estado, cantidadCamas, cantidadBanos, aireAcondicionado, espacioAbierto, tieneTelevisor, hotelNombre) {
+    super(numero, precioNoche, estado, 1, cantidadCamas, cantidadBanos, aireAcondicionado, hotelNombre);
+    this._espacioAbierto = espacioAbierto;
+    this._tieneTelevisor = tieneTelevisor;
+  }
+  get espacioAbierto() { return this._espacioAbierto; }
+  get tieneTelevisor() { return this._tieneTelevisor; }
+  get tipo() { return "Individual"; }
+
+  consultarInformacion() {
+    const yn = v => v ? "Sí" : "No";
+    return `[HABITACIÓN INDIVIDUAL #${this.numero}]\n  Estado: ${this.estado}\n  Camas: ${this.cantidadCamas}\n  Baños: ${this.cantidadBanos}\n  Aire acondic.: ${yn(this.aireAcondicionado)}\n  Espacio abierto: ${yn(this._espacioAbierto)}\n  Televisor: ${yn(this._tieneTelevisor)}\n  Precio/noche: $${this.precioNoche.toLocaleString()}`;
+  }
+}
+
+// ==================================================================
+// CLASE HABITACIONMULTIPLE — Corresponde a HabitacionMultiple(Habitacion)
+// Propiedades adicionales: cantidadTelevisores, cantidadEspaciosAbiertos
+// ==================================================================
+class HabitacionMultiple extends Habitacion {
+  constructor(numero, precioNoche, estado, aforoMaximo, cantidadCamas, cantidadBanos, aireAcondicionado, cantidadTelevisores, cantidadEspaciosAbiertos, hotelNombre) {
+    super(numero, precioNoche, estado, aforoMaximo, cantidadCamas, cantidadBanos, aireAcondicionado, hotelNombre);
+    this._cantidadTelevisores      = cantidadTelevisores;
+    this._cantidadEspaciosAbiertos = cantidadEspaciosAbiertos;
+  }
+  get cantidadTelevisores()      { return this._cantidadTelevisores; }
+  get cantidadEspaciosAbiertos() { return this._cantidadEspaciosAbiertos; }
+  get tipo() { return "Múltiple"; }
+
+  consultarInformacion() {
+    const yn = v => v ? "Sí" : "No";
+    return `[HABITACIÓN MÚLTIPLE #${this.numero}]\n  Estado: ${this.estado}\n  Aforo máximo: ${this.aforoMaximo} personas\n  Camas: ${this.cantidadCamas}\n  Baños: ${this.cantidadBanos}\n  Aire acondic.: ${yn(this.aireAcondicionado)}\n  Televisores: ${this._cantidadTelevisores}\n  Espacios abiertos: ${this._cantidadEspaciosAbiertos}\n  Precio/noche: $${this.precioNoche.toLocaleString()}`;
+  }
+}
+
+// ==================================================================
+// CLASE HOTEL — Corresponde a la clase abstracta Hotel en Python
+// Propiedades: nombre, lider, ubicacion, numHabitaciones,
+//              habitacionesDisponibles, contacto
+// Metodos: reducirDisponibilidad(), aumentarDisponibilidad()
+// ==================================================================
+class Hotel {
+  constructor(nombre, lider, ubicacion, numHabitaciones, contacto) {
+    if (numHabitaciones <= 0) throw new Error("El número de habitaciones debe ser positivo.");
+    this._nombre                   = nombre;
+    this._lider                    = lider;
+    this._ubicacion                = ubicacion;
+    this._numHabitaciones          = numHabitaciones;
+    this._habitacionesDisponibles  = numHabitaciones;
+    this._contacto                 = contacto;
+  }
+  get nombre()                  { return this._nombre; }
+  get lider()                   { return this._lider; }
+  get ubicacion()               { return this._ubicacion; }
+  get numHabitaciones()         { return this._numHabitaciones; }
+  get habitacionesDisponibles() { return this._habitacionesDisponibles; }
+  get contacto()                { return this._contacto; }
+
+  // reducir_disponibilidad() en Python
+  reducirDisponibilidad() {
+    if (this._habitacionesDisponibles <= 0)
+      throw new Error(`El hotel '${this.nombre}' no tiene habitaciones disponibles.`);
+    this._habitacionesDisponibles--;
+  }
+
+  // aumentar_disponibilidad() en Python
+  aumentarDisponibilidad() {
+    if (this._habitacionesDisponibles >= this._numHabitaciones)
+      throw new Error(`El hotel '${this.nombre}' ya tiene todas las habitaciones libres.`);
+    this._habitacionesDisponibles++;
+  }
+
+  consultarInformacion() { return ""; }
+}
+
+// ==================================================================
+// CLASE HOTELURBANO — Corresponde a HotelUrbano(Hotel) en Python
+// Propiedades adicionales: accesoTransportePublico, alimentacionIncluida
+// Metodos: reservarAlimentacion()
+// ==================================================================
+class HotelUrbano extends Hotel {
+  constructor(nombre, lider, ubicacion, numHabitaciones, contacto, accesoTransportePublico, alimentacionIncluida) {
+    super(nombre, lider, ubicacion, numHabitaciones, contacto);
+    this._accesoTransportePublico = accesoTransportePublico;
+    this._alimentacionIncluida    = alimentacionIncluida;
+  }
+  get accesoTransportePublico() { return this._accesoTransportePublico; }
+  get alimentacionIncluida()    { return this._alimentacionIncluida; }
+  get tipo() { return "Urbano"; }
+
+  // reservar_alimentacion() en Python
+  reservarAlimentacion() {
+    if (this._alimentacionIncluida) {
+      addLog("HotelUrbano", "reservar_alimentacion", `Alimentación reservada para el hotel ${this.nombre}.`);
+      return true;
+    } else {
+      addLog("HotelUrbano", "reservar_alimentacion", `La alimentación no está incluida en ${this.nombre}.`);
+      return false;
+    }
+  }
+
+  consultarInformacion() {
+    const yn = v => v ? "Sí" : "No";
+    return `[HOTEL URBANO: ${this.nombre}]\n  Líder: ${this.lider}\n  Ubicación: ${this.ubicacion}\n  Contacto: ${this.contacto}\n  Acceso transporte público: ${yn(this._accesoTransportePublico)}\n  Alimentación: ${this._alimentacionIncluida ? 'Incluida' : 'No incluida'}\n  Habitaciones disponibles: ${this.habitacionesDisponibles} / ${this.numHabitaciones}`;
+  }
+}
+
+// ==================================================================
+// CLASE HOTELRURAL — Corresponde a HotelRural(Hotel) en Python
+// Propiedades adicionales: tipoTraslado, recorridosIncluidos[]
+// Metodos: reservarTipoTraslado(), reservarRecorrido()
+// ==================================================================
+class HotelRural extends Hotel {
+  constructor(nombre, lider, ubicacion, numHabitaciones, contacto, tipoTraslado, recorridosIncluidos) {
+    super(nombre, lider, ubicacion, numHabitaciones, contacto);
+    this._tipoTraslado       = tipoTraslado;
+    this._recorridosIncluidos = [...recorridosIncluidos];
+  }
+  get tipoTraslado()       { return this._tipoTraslado; }
+  get recorridosIncluidos(){ return [...this._recorridosIncluidos]; }
+  get tipo() { return "Rural"; }
+
+  // reservar_tipo_traslado() en Python
+  reservarTipoTraslado() {
+    addLog("HotelRural", "reservar_tipo_traslado", `Traslado en ${this._tipoTraslado} reservado para ${this.nombre}.`);
+  }
+
+  // reservar_recorrido() en Python
+  reservarRecorrido(recorrido) {
+    if (this._recorridosIncluidos.includes(recorrido)) {
+      addLog("HotelRural", "reservar_recorrido", `Recorrido '${recorrido}' reservado exitosamente.`);
+      return true;
+    } else {
+      addLog("HotelRural", "reservar_recorrido", `El recorrido '${recorrido}' no está disponible en este hotel.`);
+      return false;
+    }
+  }
+
+  consultarInformacion() {
+    return `[HOTEL RURAL: ${this.nombre}]\n  Líder: ${this.lider}\n  Ubicación: ${this.ubicacion}\n  Contacto: ${this.contacto}\n  Tipo de traslado: ${this._tipoTraslado}\n  Recorridos incluidos: ${this._recorridosIncluidos.join(', ')}\n  Habitaciones disponibles: ${this.habitacionesDisponibles} / ${this.numHabitaciones}`;
+  }
+}
+
+// ==================================================================
+// CLASE RESERVA — Corresponde a Reserva en Python
+// Al crear: marca la habitación como ocupada y reduce disponibilidad del hotel
+// Al cancelar: libera habitación y aumenta disponibilidad
+// ==================================================================
+class Reserva {
+  constructor(huesped, habitacion, hotel, empleadoResponsable, fechaEntrada, fechaSalida) {
+    if (fechaSalida <= fechaEntrada)
+      throw new Error("La fecha de salida debe ser posterior a la de entrada.");
+    if (!habitacion.estaDisponible)
+      throw new Error(`La habitación #${habitacion.numero} no está disponible.`);
+
+    reservaCounter++;
+    this._numeroReserva      = reservaCounter;
+    this._huesped            = huesped;
+    this._habitacion         = habitacion;
+    this._hotel              = hotel;
+    this._empleadoResponsable = empleadoResponsable;
+    this._fechaEntrada       = fechaEntrada;
+    this._fechaSalida        = fechaSalida;
+    this._numNoches          = Math.ceil((fechaSalida - fechaEntrada) / (1000 * 60 * 60 * 24));
+    this._estado             = EstadoReserva.ACTIVA;
+
+    // Efectos colaterales — igual que en Python
+    habitacion.marcarOcupada();
+    hotel.reducirDisponibilidad();
+  }
+  get numeroReserva()      { return this._numeroReserva; }
+  get huesped()            { return this._huesped; }
+  get habitacion()         { return this._habitacion; }
+  get hotel()              { return this._hotel; }
+  get empleadoResponsable(){ return this._empleadoResponsable; }
+  get fechaEntrada()       { return this._fechaEntrada; }
+  get fechaSalida()        { return this._fechaSalida; }
+  get numNoches()          { return this._numNoches; }
+  get estado()             { return this._estado; }
+  get estaActiva()         { return this._estado === EstadoReserva.ACTIVA; }
+
+  // cancelar() en Python
+  cancelar() {
+    if (!this.estaActiva)
+      throw new Error(`La reserva #${this._numeroReserva} ya está cancelada.`);
+    this._estado = EstadoReserva.CANCELADA;
+    this._habitacion.marcarDisponible();
+    this._hotel.aumentarDisponibilidad();
+    addLog("Reserva", "cancelar", `Reserva #${this._numeroReserva} cancelada. Habitación liberada.`);
+  }
+
+  consultarInformacion() {
+    return `[RESERVA #${this._numeroReserva}]\n  Huésped: ${this._huesped.nombre}\n  Hotel: ${this._hotel.nombre}\n  Habitación: #${this._habitacion.numero}\n  Empleado responsable: ${this._empleadoResponsable.nombre}\n  Fecha entrada: ${formatDate(this._fechaEntrada)}\n  Fecha salida: ${formatDate(this._fechaSalida)}\n  Noches: ${this._numNoches}\n  Estado: ${this._estado}`;
+  }
+}
+
+// ==================================================================
+// CLASE FACTURAHOTEL — Corresponde a FacturaHotel en Python
+// Al crear: marca habitación como disponible (check-out implícito)
+// registrarPago() cambia estado a PAGADA
+// ==================================================================
+class FacturaHotel {
+  constructor(reserva, serviciosAdicionales = 0) {
+    if (!reserva.estaActiva)
+      throw new Error("No se puede facturar una reserva cancelada.");
+    if (serviciosAdicionales < 0)
+      throw new Error("Los servicios adicionales no pueden ser negativos.");
+
+    facturaCounter++;
+    this._numeroFactura       = facturaCounter;
+    this._reserva             = reserva;
+    this._serviciosAdicionales = serviciosAdicionales;
+    this._subtotalHabitacion  = reserva.habitacion.precioNoche * reserva.numNoches;
+    this._total               = this._subtotalHabitacion + serviciosAdicionales;
+    this._fechaEmision        = new Date();
+    this._estadoPago          = EstadoPago.PENDIENTE;
+
+    // Check-out implícito — igual que en Python
+    reserva.habitacion.marcarDisponible();
+    // Aumentar disponibilidad del hotel
+    reserva.hotel.aumentarDisponibilidad();
+  }
+  get numeroFactura()       { return this._numeroFactura; }
+  get reserva()             { return this._reserva; }
+  get serviciosAdicionales(){ return this._serviciosAdicionales; }
+  get subtotalHabitacion()  { return this._subtotalHabitacion; }
+  get total()               { return this._total; }
+  get fechaEmision()        { return this._fechaEmision; }
+  get estadoPago()          { return this._estadoPago; }
+
+  // registrar_pago() en Python
+  registrarPago() {
+    if (this._estadoPago === EstadoPago.PAGADA) {
+      addLog("FacturaHotel", "registrar_pago", `La factura #${this._numeroFactura} ya fue pagada.`);
+      return;
+    }
+    this._estadoPago = EstadoPago.PAGADA;
+    addLog("FacturaHotel", "registrar_pago", `Pago registrado. Factura #${this._numeroFactura} pagada.`);
+  }
+
+  consultarInformacion() {
+    return `[FACTURA HOTEL #${this._numeroFactura}]\n  Reserva #: ${this._reserva.numeroReserva}\n  Huésped: ${this._reserva.huesped.nombre}\n  Hotel: ${this._reserva.hotel.nombre}\n  Noches: ${this._reserva.numNoches}\n  Subtotal hab.: $${this._subtotalHabitacion.toLocaleString()}\n  Servicios adic.: $${this._serviciosAdicionales.toLocaleString()}\n  TOTAL: $${this._total.toLocaleString()}\n  Fecha emisión: ${formatDate(this._fechaEmision)}\n  Estado de pago: ${this._estadoPago}`;
+  }
+}
+
+
+// ==================================================================
+// ESTADO DEL SISTEMA — Arrays en memoria que simulan la base de datos
+// ==================================================================
+let hoteles    = [];
+let habitaciones = [];
+let huespedes  = [];
+let empleados  = [];
+let reservas   = [];
+let facturas   = [];
+let actividades = []; // Timeline de actividades para el dashboard
+
+// ==================================================================
+// FUNCIONES UTILITARIAS
+// ==================================================================
+function formatDate(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  return date.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+function formatDateInput(d) {
+  const date = new Date(d);
+  return date.toISOString().split('T')[0];
+}
+function parseDate(str) {
+  const parts = str.split('-');
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+}
+function yn(v) { return v ? 'Sí' : 'No'; }
+
+// ==================================================================
+// SISTEMA DE LOG — Emula la salida print() del código Python
+// ==================================================================
+const logEntries = [];
+function addLog(cls, method, data) {
+  const now = new Date();
+  const time = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  logEntries.push({ time, cls, method, data });
+  renderLog();
+  // También registrar actividad para el dashboard
+  actividades.unshift({ time, type: method, text: data });
+  if (actividades.length > 20) actividades.pop();
+}
+function renderLog() {
+  const body = document.getElementById('logBody');
+  body.innerHTML = logEntries.map(e =>
+    `<div class="log-entry"><span class="log-time">${e.time}</span><span class="log-class">${e.cls}</span>.<span class="log-method">${e.method}()</span> → <span class="log-data">${e.data}</span></div>`
+  ).join('');
+  body.scrollTop = body.scrollHeight;
+}
+function toggleLog() {
+  const panel = document.getElementById('logPanel');
+  const btn = document.getElementById('logToggleBtn');
+  if (panel.classList.contains('collapsed')) {
+    panel.classList.remove('collapsed');
+    panel.classList.add('expanded');
+    btn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+  } else {
+    panel.classList.remove('expanded');
+    panel.classList.add('collapsed');
+    btn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+  }
+}
+
+// ==================================================================
+// SISTEMA DE TOAST
+// ==================================================================
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(60px)'; toast.style.transition = 'all 0.3s'; setTimeout(() => toast.remove(), 300); }, 3500);
+}
+
+// ==================================================================
+// SISTEMA DE MODAL
+// ==================================================================
+function showModal(title, bodyHTML, footerHTML = '') {
+  const overlay = document.getElementById('modalOverlay');
+  const content = document.getElementById('modalContent');
+  content.innerHTML = `
+    <div class="modal-header"><h3>${title}</h3><button class="modal-close" onclick="hideModal()"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">${bodyHTML}</div>
+    ${footerHTML ? `<div class="modal-footer">${footerHTML}</div>` : ''}
+  `;
+  overlay.classList.add('active');
+}
+function hideModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+// Cerrar modal con clic fuera
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) hideModal();
+});
+
+// ==================================================================
+// INICIALIZACIÓN DE DATOS DEMO — Equivalente al bloque if __name__ == "__main__"
+// ==================================================================
+function initDemoData() {
+  // Limpiar estado
+  hoteles = []; habitaciones = []; huespedes = []; empleados = [];
+  reservas = []; facturas = []; actividades = [];
+  logEntries.length = 0;
+  reservaCounter = 0;
+  facturaCounter = 0;
+
+  // --- Hoteles ---
+  // hotel_urbano = HotelUrbano(...) en Python
+  const hotelUrbano = new HotelUrbano(
+    "Hotel Manizales Centro", "Carlos Ramírez",
+    "Calle 23 #18-45, Manizales", 6, "3101234567",
+    true, true
+  );
+  // hotel_rural = HotelRural(...) en Python
+  const hotelRural = new HotelRural(
+    "Finca La Cabaña", "María López",
+    "Vereda El Rosario, km 12", 4, "3209876543",
+    "Jeep 4x4",
+    ["Avistamiento de aves", "Caminata al mirador", "Visita al cafetal"]
+  );
+  hoteles.push(hotelUrbano, hotelRural);
+
+  // --- Habitaciones ---
+  // Habitaciones para Hotel Manizales Centro
+  habitaciones.push(new HabitacionIndividual(101, 150000, EstadoHabitacion.DISPONIBLE, 1, 1, true, false, true, hotelUrbano.nombre));
+  habitaciones.push(new HabitacionIndividual(102, 150000, EstadoHabitacion.DISPONIBLE, 1, 1, true, true, true, hotelUrbano.nombre));
+  habitaciones.push(new HabitacionIndividual(103, 160000, EstadoHabitacion.DISPONIBLE, 1, 1, true, false, false, hotelUrbano.nombre));
+  habitaciones.push(new HabitacionMultiple(201, 280000, EstadoHabitacion.DISPONIBLE, 4, 2, 2, true, 2, 1, hotelUrbano.nombre));
+  habitaciones.push(new HabitacionMultiple(202, 280000, EstadoHabitacion.DISPONIBLE, 4, 2, 2, true, 2, 1, hotelUrbano.nombre));
+  habitaciones.push(new HabitacionMultiple(301, 350000, EstadoHabitacion.DISPONIBLE, 6, 3, 2, true, 3, 2, hotelUrbano.nombre));
+
+  // Habitaciones para Finca La Cabaña
+  habitaciones.push(new HabitacionIndividual(401, 120000, EstadoHabitacion.DISPONIBLE, 1, 1, false, true, false, hotelRural.nombre));
+  habitaciones.push(new HabitacionIndividual(402, 120000, EstadoHabitacion.DISPONIBLE, 1, 1, false, true, true, hotelRural.nombre));
+  habitaciones.push(new HabitacionMultiple(501, 220000, EstadoHabitacion.DISPONIBLE, 3, 2, 1, false, 1, 1, hotelRural.nombre));
+  habitaciones.push(new HabitacionMultiple(502, 220000, EstadoHabitacion.DISPONIBLE, 3, 2, 1, true, 1, 1, hotelRural.nombre));
+
+  // --- Huéspedes ---
+  huespedes.push(new Huesped("Ana Sofía Torres", "1234567890", "3151112233", new Date(1995, 3, 12), "Carrera 10 #5-20, Bogotá", "Colombiana", "Español"));
+  huespedes.push(new Huesped("Carlos Ruiz", "0987654321", "3142223344", new Date(1988, 7, 25), "Calle 45 #12-30, Medellín", "Colombiana", "Español"));
+  huespedes.push(new Huesped("Elena Rodriguez", "1122334455", "3163334455", new Date(1992, 0, 8), "Av. Paulista 1000, São Paulo", "Brasileña", "Portugués"));
+  huespedes.push(new Huesped("Marcus Thorne", "5566778899", "3174445566", new Date(1990, 10, 15), "221B Baker St, London", "Británica", "Inglés"));
+
+  // --- Empleados ---
+  empleados.push(new EmpleadoHotel("Juan Pérez", "9876543210", "3006667788", new Date(1988, 8, 3), "Calle 50 #30-10, Manizales", "Recepcionista", ["Español", "Inglés"]));
+  empleados.push(new EmpleadoHotel("Laura Sánchez", "3344556677", "3017778899", new Date(1993, 4, 20), "Carrera 5 #8-15, Manizales", "Administradora", ["Español", "Inglés", "Francés"]));
+  empleados.push(new EmpleadoHotel("Diego Ramírez", "9988776655", "3028889900", new Date(1991, 2, 10), "Calle 12 #4-22, Manizales", "Conserje", ["Español"]));
+
+  // --- Reserva de demo (igual que en Python __main__) ---
+  // reserva1 = Reserva(huesped=huesped1, habitacion=hab1, hotel=hotel_urbano, ...)
+  const hab1 = habitaciones.find(h => h.numero === 101);
+  const reserva1 = new Reserva(
+    huespedes[0], hab1, hotelUrbano, empleados[0],
+    new Date(2026, 5, 10), new Date(2026, 5, 13)
+  );
+  reservas.push(reserva1);
+  addLog("Reserva", "__init__", reserva1.consultarInformacion());
+
+  // --- Factura de demo ---
+  // factura1 = FacturaHotel(reserva=reserva1, servicios_adicionales=50_000)
+  const factura1 = new FacturaHotel(reserva1, 50000);
+  facturas.push(factura1);
+  addLog("FacturaHotel", "__init__", factura1.consultarInformacion());
+
+  // Actualizar contadores de badge
+  updateBadges();
+}
+
+function updateBadges() {
+  const avail = habitaciones.filter(h => h.estaDisponible).length;
+  const activeRes = reservas.filter(r => r.estaActiva).length;
+  document.getElementById('badgeRooms').textContent = avail;
+  document.getElementById('badgeReservas').textContent = activeRes;
+}
+
+function resetSystem() {
+  initDemoData();
+  renderCurrentSection();
+  showToast('Sistema reiniciado con datos de demo', 'success');
+}
+
+
+// ==================================================================
+// NAVEGACIÓN ENTRE SECCIONES
+// ==================================================================
+let currentSection = 'dashboard';
+const sectionTitles = {
+  dashboard:    { title: 'Dashboard', sub: 'Vista general del sistema hotelero' },
+  hoteles:      { title: 'Hoteles', sub: 'Gestión de hoteles y servicios' },
+  habitaciones: { title: 'Habitaciones', sub: 'Estado y gestión de habitaciones' },
+  huespedes:    { title: 'Huéspedes', sub: 'Registro y consulta de huéspedes' },
+  empleados:    { title: 'Empleados', sub: 'Personal del hotel' },
+  reservas:     { title: 'Reservas', sub: 'Gestión de reservas' },
+  facturas:     { title: 'Facturas', sub: 'Facturación y pagos' },
+};
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const section = item.dataset.section;
+    if (!section) return;
+    currentSection = section;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    const t = sectionTitles[section] || { title: section, sub: '' };
+    document.getElementById('topbarTitle').textContent = t.title;
+    document.getElementById('topbarSubtitle').textContent = t.sub;
+    renderCurrentSection();
+    // Cerrar sidebar en móvil
+    document.getElementById('sidebar').classList.remove('open');
+  });
+});
+
+function renderCurrentSection() {
+  const content = document.getElementById('mainContent');
+  switch (currentSection) {
+    case 'dashboard':    content.innerHTML = renderDashboard(); break;
+    case 'hoteles':      content.innerHTML = renderHoteles(); break;
+    case 'habitaciones': content.innerHTML = renderHabitaciones(); break;
+    case 'huespedes':    content.innerHTML = renderHuespedes(); break;
+    case 'empleados':    content.innerHTML = renderEmpleados(); break;
+    case 'reservas':     content.innerHTML = renderReservas(); break;
+    case 'facturas':     content.innerHTML = renderFacturas(); break;
+  }
+  updateBadges();
+}
+
+
+// ==================================================================
+// RENDER: DASHBOARD
+// ==================================================================
+function renderDashboard() {
+  const totalRooms = habitaciones.length;
+  const occupiedRooms = habitaciones.filter(h => h.estado === EstadoHabitacion.OCUPADA).length;
+  const availableRooms = totalRooms - occupiedRooms;
+  const occupancyPct = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+  const activeRes = reservas.filter(r => r.estaActiva).length;
+  const totalGuests = huespedes.length;
+  const totalRevenue = facturas.reduce((s, f) => s + f.total, 0);
+  const paidRevenue = facturas.filter(f => f.estadoPago === EstadoPago.PAGADA).reduce((s, f) => s + f.total, 0);
+
+  // Gauge SVG
+  const circumference = 2 * Math.PI * 54;
+  const offset = circumference - (occupancyPct / 100) * circumference;
+
+  return `
+    <div class="stats-grid animate-in">
+      <div class="stat-card gold">
+        <div class="stat-icon"><i class="fas fa-bed"></i></div>
+        <div class="stat-value">${occupancyPct}%</div>
+        <div class="stat-label">Ocupación</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-value">${activeRes}</div>
+        <div class="stat-label">Reservas Activas</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-value">${totalGuests}</div>
+        <div class="stat-label">Huéspedes</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-value">$${totalRevenue.toLocaleString()}</div>
+        <div class="stat-label">Ingresos Totales</div>
+      </div>
+    </div>
+
+    <div class="section-grid">
+      <div class="panel panel-full animate-in">
+        <div class="panel-header">
+          <h3><i class="fas fa-chart-pie" style="color:var(--accent);margin-right:8px"></i>Estado de Ocupación</h3>
+        </div>
+        <div class="panel-body" style="display:flex;align-items:center;gap:40px;flex-wrap:wrap;justify-content:center">
+          <div class="gauge-wrap">
+            <div class="gauge">
+              <svg width="130" height="130" viewBox="0 0 130 130">
+                <circle class="gauge-bg" cx="65" cy="65" r="54"/>
+                <circle class="gauge-fill" cx="65" cy="65" r="54"
+                  stroke-dasharray="${circumference}"
+                  stroke-dashoffset="${offset}"/>
+              </svg>
+              <div class="gauge-text">
+                <span class="gauge-val">${occupancyPct}%</span>
+                <span class="gauge-lbl">Ocupación</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:32px;flex-wrap:wrap">
+            <div style="text-align:center">
+              <div style="font-size:2rem;font-weight:700;color:var(--success)">${availableRooms}</div>
+              <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase">Disponibles</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:2rem;font-weight:700;color:var(--danger)">${occupiedRooms}</div>
+              <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase">Ocupadas</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:2rem;font-weight:700;color:var(--fg)">${totalRooms}</div>
+              <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase">Total</div>
+            </div>
+          </div>
+          <div style="min-width:200px">
+            <div style="font-size:0.82rem;font-weight:600;margin-bottom:8px;color:var(--fg)">Ingresos</div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-bottom:4px">Pagado: <strong style="color:var(--success)">$${paidRevenue.toLocaleString()}</strong></div>
+            <div style="font-size:0.78rem;color:var(--muted)">Pendiente: <strong style="color:var(--warning)">$${(totalRevenue - paidRevenue).toLocaleString()}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-grid" style="margin-top:24px">
+      <div class="panel animate-in">
+        <div class="panel-header"><h3><i class="fas fa-clock" style="color:var(--accent);margin-right:8px"></i>Actividad Reciente</h3></div>
+        <div class="panel-body">
+          ${actividades.length === 0 ? '<p style="color:var(--muted);font-size:0.85rem">Sin actividad registrada</p>' :
+            `<ul class="activity-list">${actividades.slice(0, 8).map(a => `
+              <li class="activity-item">
+                <span class="activity-dot ${a.type.includes('cancelar') ? 'cancel' : a.type.includes('pago') || a.type.includes('registrar') ? 'pago' : 'reserva'}"></span>
+                <div><div>${a.text}</div><div class="activity-time">${a.time}</div></div>
+              </li>`).join('')}</ul>`}
+        </div>
+      </div>
+      <div class="panel animate-in">
+        <div class="panel-header"><h3><i class="fas fa-hotel" style="color:var(--accent);margin-right:8px"></i>Hoteles</h3></div>
+        <div class="panel-body">
+          ${hoteles.map(h => `
+            <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+              <div style="font-weight:600;font-size:0.92rem">${h.nombre}</div>
+              <div style="font-size:0.78rem;color:var(--muted);margin-top:2px">${h.ubicacion}</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                <span style="font-size:0.78rem;color:var(--muted)">Disponibles:</span>
+                <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+                  <div style="height:100%;width:${(h.habitacionesDisponibles / h.numHabitaciones) * 100}%;background:var(--success);border-radius:3px;transition:width 0.6s"></div>
+                </div>
+                <span style="font-size:0.78rem;font-weight:600">${h.habitacionesDisponibles}/${h.numHabitaciones}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+
+// ==================================================================
+// RENDER: HOTELES
+// ==================================================================
+function renderHoteles() {
+  return `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:24px">
+      ${hoteles.map(h => {
+        const isUrbano = h instanceof HotelUrbano;
+        const pct = (h.habitacionesDisponibles / h.numHabitaciones) * 100;
+        return `
+        <div class="hotel-card animate-in">
+          <div class="hotel-card-banner ${isUrbano ? 'urbano' : 'rural'}">
+            <span class="hotel-type-tag">${h.tipo}</span>
+            <h3>${h.nombre}</h3>
+          </div>
+          <div class="hotel-card-body">
+            <div class="hotel-info-row"><i class="fas fa-user-tie"></i> ${h.lider}</div>
+            <div class="hotel-info-row"><i class="fas fa-map-marker-alt"></i> ${h.ubicacion}</div>
+            <div class="hotel-info-row"><i class="fas fa-phone"></i> ${h.contacto}</div>
+            ${isUrbano ? `
+              <div class="hotel-info-row"><i class="fas fa-bus"></i> Transporte público: ${yn(h.accesoTransportePublico)}</div>
+              <div class="hotel-info-row"><i class="fas fa-utensils"></i> Alimentación: ${h.alimentacionIncluida ? 'Incluida' : 'No incluida'}</div>
+            ` : `
+              <div class="hotel-info-row"><i class="fas fa-truck"></i> Traslado: ${h.tipoTraslado}</div>
+              <div class="hotel-info-row"><i class="fas fa-hiking"></i> Recorridos: ${h.recorridosIncluidos.join(', ')}</div>
+            `}
+            <div class="hotel-avail">
+              <span style="font-size:0.82rem;font-weight:600">${h.habitacionesDisponibles} disp.</span>
+              <div class="hotel-avail-bar"><div class="hotel-avail-bar-fill" style="width:${pct}%"></div></div>
+              <span style="font-size:0.82rem;color:var(--muted)">${h.numHabitaciones}</span>
+            </div>
+          </div>
+          <div class="hotel-card-actions">
+            ${isUrbano ? `
+              <button class="btn btn-outline btn-sm" onclick="accionAlimentacion('${h.nombre}')"><i class="fas fa-utensils"></i> Reservar Alimentación</button>
+            ` : `
+              <button class="btn btn-outline btn-sm" onclick="accionTraslado('${h.nombre}')"><i class="fas fa-truck"></i> Reservar Traslado</button>
+              <button class="btn btn-outline btn-sm" onclick="accionRecorrido('${h.nombre}')"><i class="fas fa-hiking"></i> Reservar Recorrido</button>
+            `}
+            <button class="btn btn-outline btn-sm" onclick="verInfoHotel('${h.nombre}')"><i class="fas fa-info-circle"></i> Info Python</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// Acciones de hotel
+function accionAlimentacion(nombre) {
+  const hotel = hoteles.find(h => h.nombre === nombre);
+  if (hotel instanceof HotelUrbano) {
+    const result = hotel.reservarAlimentacion();
+    showToast(result ? 'Alimentación reservada exitosamente' : 'Alimentación no incluida en este hotel', result ? 'success' : 'warning');
+  }
+}
+function accionTraslado(nombre) {
+  const hotel = hoteles.find(h => h.nombre === nombre);
+  if (hotel instanceof HotelRural) {
+    hotel.reservarTipoTraslado();
+    showToast(`Traslado en ${hotel.tipoTraslado} reservado`, 'success');
+  }
+}
+function accionRecorrido(nombre) {
+  const hotel = hoteles.find(h => h.nombre === nombre);
+  if (hotel instanceof HotelRural) {
+    const recorridos = hotel.recorridosIncluidos;
+    showModal('Reservar Recorrido', `
+      <p style="margin-bottom:14px;font-size:0.88rem">Seleccione un recorrido para <strong>${hotel.nombre}</strong>:</p>
+      ${recorridos.map(r => `<button class="btn btn-outline" style="margin:4px" onclick="doRecorrido('${nombre}','${r}')">${r}</button>`).join('')}
+    `);
+  }
+}
+function doRecorrido(nombre, recorrido) {
+  const hotel = hoteles.find(h => h.nombre === nombre);
+  const ok = hotel.reservarRecorrido(recorrido);
+  hideModal();
+  showToast(ok ? `Recorrido "${recorrido}" reservado` : `Recorrido "${recorrido}" no disponible`, ok ? 'success' : 'warning');
+}
+function verInfoHotel(nombre) {
+  const hotel = hoteles.find(h => h.nombre === nombre);
+  showModal('Información del Hotel — Salida Python', `<pre style="font-family:'Courier New',monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:var(--fg)">${hotel.consultarInformacion()}</pre>`);
+}
+
+
+// ==================================================================
+// RENDER: HABITACIONES
+// ==================================================================
+let roomFilter = 'todas';
+let roomHotelFilter = 'todos';
+
+function renderHabitaciones() {
+  const filtered = habitaciones.filter(h => {
+    if (roomFilter !== 'todas' && h.estado !== roomFilter) return false;
+    if (roomHotelFilter !== 'todos' && h.hotelNombre !== roomHotelFilter) return false;
+    return true;
+  });
+
+  return `
+    <div class="toolbar">
+      <div class="toolbar-filters">
+        <button class="filter-btn ${roomFilter==='todas'?'active':''}" onclick="roomFilter='todas';renderCurrentSection()">Todas</button>
+        <button class="filter-btn ${roomFilter==='disponible'?'active':''}" onclick="roomFilter='disponible';renderCurrentSection()">Disponibles</button>
+        <button class="filter-btn ${roomFilter==='ocupada'?'active':''}" onclick="roomFilter='ocupada';renderCurrentSection()">Ocupadas</button>
+        <select class="form-control" style="width:auto;padding:7px 12px;font-size:0.78rem" onchange="roomHotelFilter=this.value;renderCurrentSection()">
+          <option value="todos" ${roomHotelFilter==='todos'?'selected':''}>Todos los hoteles</option>
+          ${hoteles.map(h => `<option value="${h.nombre}" ${roomHotelFilter===h.nombre?'selected':''}>${h.nombre}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="rooms-grid">
+      ${filtered.map(h => `
+        <div class="room-card animate-in">
+          <div class="room-card-header">
+            <span class="room-num">#${h.numero}</span>
+            <span class="badge-status ${h.estado}"><span class="badge-dot ${h.estado}"></span> ${h.estado}</span>
+          </div>
+          <div class="room-card-body">
+            <div class="room-type">${h.tipo === 'Individual' ? '<i class="fas fa-user" style="margin-right:4px"></i>' : '<i class="fas fa-users" style="margin-right:4px"></i>'} ${h.tipo} — ${h.hotelNombre}</div>
+            <div class="room-details">
+              <span><i class="fas fa-bed"></i> ${h.cantidadCamas}</span>
+              <span><i class="fas fa-bath"></i> ${h.cantidadBanos}</span>
+              <span><i class="fas fa-snowflake"></i> ${yn(h.aireAcondicionado)}</span>
+              ${h.tipo === 'Individual' ? `<span><i class="fas fa-tv"></i> ${yn(h.tieneTelevisor)}</span>` : `<span><i class="fas fa-tv"></i> ${h.cantidadTelevisores}</span>`}
+            </div>
+            <div class="room-price">$${h.precioNoche.toLocaleString()}<span style="font-size:0.72rem;font-weight:400;color:var(--muted)">/noche</span></div>
+          </div>
+          <div class="room-card-footer">
+            <button class="btn btn-outline btn-sm" onclick="verInfoHabitacion(${h.numero})"><i class="fas fa-info-circle"></i> Info Python</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function verInfoHabitacion(num) {
+  const h = habitaciones.find(r => r.numero === num);
+  showModal('Información de Habitación — Salida Python', `<pre style="font-family:'Courier New',monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:var(--fg)">${h.consultarInformacion()}</pre>`);
+}
+
+
+// ==================================================================
+// RENDER: HUÉSPEDES
+// ==================================================================
+function renderHuespedes() {
+  return `
+    <div class="toolbar">
+      <div></div>
+      <button class="btn btn-primary" onclick="openNewHuesped()"><i class="fas fa-plus"></i> Nuevo Huésped</button>
+    </div>
+    <div class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cédula</th>
+              <th>Contacto</th>
+              <th>Edad</th>
+              <th>Nacionalidad</th>
+              <th>Idioma</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${huespedes.map(h => `
+              <tr>
+                <td style="font-weight:600">${h.nombre}</td>
+                <td>${h.cedula}</td>
+                <td>${h.contacto}</td>
+                <td>${h.calcularEdad()}</td>
+                <td>${h.nacionalidad}</td>
+                <td>${h.idioma}</td>
+                <td>
+                  <button class="btn-icon" title="Ver info Python" onclick="verInfoPersona('huesped','${h.cedula}')"><i class="fas fa-info-circle"></i></button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${huespedes.length === 0 ? '<div class="empty-state"><i class="fas fa-users"></i><p>No hay huéspedes registrados</p></div>' : ''}
+    </div>
+  `;
+}
+function openNewHuesped() {
+  showModal('Registrar Nuevo Huésped', `
+    <div class="form-row">
+      <div class="form-group"><label>Nombre</label><input class="form-control" id="hNombre" placeholder="Nombre completo"></div>
+      <div class="form-group"><label>Cédula</label><input class="form-control" id="hCedula" placeholder="Número de cédula"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Contacto</label><input class="form-control" id="hContacto" placeholder="Teléfono"></div>
+      <div class="form-group"><label>Fecha de Nacimiento</label><input class="form-control" type="date" id="hFecha"></div>
+    </div>
+    <div class="form-group"><label>Dirección</label><input class="form-control" id="hDireccion" placeholder="Dirección completa"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Nacionalidad</label><input class="form-control" id="hNacionalidad" placeholder="Ej: Colombiana"></div>
+      <div class="form-group"><label>Idioma</label><input class="form-control" id="hIdioma" placeholder="Ej: Español"></div>
+    </div>
+  `, `<button class="btn btn-outline" onclick="hideModal()">Cancelar</button><button class="btn btn-primary" onclick="saveHuesped()">Registrar</button>`);
+}
+function saveHuesped() {
+  try {
+    const nombre = document.getElementById('hNombre').value;
+    const cedula = document.getElementById('hCedula').value;
+    const contacto = document.getElementById('hContacto').value;
+    const fecha = document.getElementById('hFecha').value;
+    const direccion = document.getElementById('hDireccion').value;
+    const nacionalidad = document.getElementById('hNacionalidad').value;
+    const idioma = document.getElementById('hIdioma').value;
+    if (!fecha) { showToast('La fecha de nacimiento es obligatoria', 'error'); return; }
+    const h = new Huesped(nombre, cedula, contacto, parseDate(fecha), direccion, nacionalidad, idioma);
+    huespedes.push(h);
+    addLog("Huesped", "__init__", h.consultarInformacion());
+    hideModal();
+    showToast(`Huésped "${h.nombre}" registrado exitosamente`, 'success');
+    renderCurrentSection();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+// ==================================================================
+// RENDER: EMPLEADOS
+// ==================================================================
+function renderEmpleados() {
+  return `
+    <div class="toolbar">
+      <div></div>
+      <button class="btn btn-primary" onclick="openNewEmpleado()"><i class="fas fa-plus"></i> Nuevo Empleado</button>
+    </div>
+    <div class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cédula</th>
+              <th>Contacto</th>
+              <th>Cargo</th>
+              <th>Idiomas</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${empleados.map(e => `
+              <tr>
+                <td style="font-weight:600">${e.nombre}</td>
+                <td>${e.cedula}</td>
+                <td>${e.contacto}</td>
+                <td><span style="background:rgba(200,164,92,0.1);color:var(--accent);padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600">${e.cargo}</span></td>
+                <td>${e.idiomas.join(', ')}</td>
+                <td>
+                  <button class="btn-icon" title="Ver info Python" onclick="verInfoPersona('empleado','${e.cedula}')"><i class="fas fa-info-circle"></i></button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+function openNewEmpleado() {
+  showModal('Registrar Nuevo Empleado', `
+    <div class="form-row">
+      <div class="form-group"><label>Nombre</label><input class="form-control" id="eNombre" placeholder="Nombre completo"></div>
+      <div class="form-group"><label>Cédula</label><input class="form-control" id="eCedula" placeholder="Número de cédula"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Contacto</label><input class="form-control" id="eContacto" placeholder="Teléfono"></div>
+      <div class="form-group"><label>Fecha de Nacimiento</label><input class="form-control" type="date" id="eFecha"></div>
+    </div>
+    <div class="form-group"><label>Dirección</label><input class="form-control" id="eDireccion" placeholder="Dirección completa"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Cargo</label><input class="form-control" id="eCargo" placeholder="Ej: Recepcionista"></div>
+      <div class="form-group"><label>Idiomas (separados por coma)</label><input class="form-control" id="eIdiomas" placeholder="Ej: Español, Inglés"></div>
+    </div>
+  `, `<button class="btn btn-outline" onclick="hideModal()">Cancelar</button><button class="btn btn-primary" onclick="saveEmpleado()">Registrar</button>`);
+}
+function saveEmpleado() {
+  try {
+    const nombre = document.getElementById('eNombre').value;
+    const cedula = document.getElementById('eCedula').value;
+    const contacto = document.getElementById('eContacto').value;
+    const fecha = document.getElementById('eFecha').value;
+    const direccion = document.getElementById('eDireccion').value;
+    const cargo = document.getElementById('eCargo').value;
+    const idiomas = document.getElementById('eIdiomas').value.split(',').map(s => s.trim()).filter(s => s);
+    if (!fecha) { showToast('La fecha de nacimiento es obligatoria', 'error'); return; }
+    const e = new EmpleadoHotel(nombre, cedula, contacto, parseDate(fecha), direccion, cargo, idiomas);
+    empleados.push(e);
+    addLog("EmpleadoHotel", "__init__", e.consultarInformacion());
+    hideModal();
+    showToast(`Empleado "${e.nombre}" registrado exitosamente`, 'success');
+    renderCurrentSection();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function verInfoPersona(tipo, cedula) {
+  const lista = tipo === 'huesped' ? huespedes : empleados;
+  const p = lista.find(x => x.cedula === cedula);
+  if (p) showModal('Información — Salida Python', `<pre style="font-family:'Courier New',monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:var(--fg)">${p.consultarInformacion()}</pre>`);
+}
+
+
+// ==================================================================
+// RENDER: RESERVAS
+// ==================================================================
+function renderReservas() {
+  return `
+    <div class="toolbar">
+      <div></div>
+      <button class="btn btn-primary" onclick="openNewReserva()"><i class="fas fa-plus"></i> Nueva Reserva</button>
+    </div>
+    <div class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Huésped</th>
+              <th>Hotel</th>
+              <th>Habitación</th>
+              <th>Entrada</th>
+              <th>Salida</th>
+              <th>Noches</th>
+              <th>Empleado</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${reservas.map(r => `
+              <tr>
+                <td style="font-weight:700;color:var(--accent)">${r.numeroReserva}</td>
+                <td style="font-weight:600">${r.huesped.nombre}</td>
+                <td>${r.hotel.nombre}</td>
+                <td>#${r.habitacion.numero}</td>
+                <td>${formatDate(r.fechaEntrada)}</td>
+                <td>${formatDate(r.fechaSalida)}</td>
+                <td>${r.numNoches}</td>
+                <td>${r.empleadoResponsable.nombre}</td>
+                <td><span class="badge-status ${r.estado}"><span class="badge-dot ${r.estado}"></span> ${r.estado}</span></td>
+                <td style="display:flex;gap:6px">
+                  <button class="btn-icon" title="Ver info Python" onclick="verInfoReserva(${r.numeroReserva})"><i class="fas fa-info-circle"></i></button>
+                  ${r.estaActiva ? `<button class="btn btn-danger btn-sm" onclick="cancelarReserva(${r.numeroReserva})"><i class="fas fa-times"></i> Cancelar</button>` : ''}
+                  ${r.estaActiva ? `<button class="btn btn-success btn-sm" onclick="openFacturar(${r.numeroReserva})"><i class="fas fa-file-invoice-dollar"></i> Facturar</button>` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${reservas.length === 0 ? '<div class="empty-state"><i class="fas fa-calendar"></i><p>No hay reservas registradas</p></div>' : ''}
+    </div>
+  `;
+}
+
+function openNewReserva() {
+  const availRooms = habitaciones.filter(h => h.estaDisponible);
+  const activeHuespedes = huespedes;
+  if (availRooms.length === 0) { showToast('No hay habitaciones disponibles', 'warning'); return; }
+  if (activeHuespedes.length === 0) { showToast('No hay huéspedes registrados', 'warning'); return; }
+  if (empleados.length === 0) { showToast('No hay empleados registrados', 'warning'); return; }
+
+  showModal('Crear Nueva Reserva', `
+    <div class="form-group"><label>Huésped</label>
+      <select class="form-control" id="rHuesped">
+        ${activeHuespedes.map(h => `<option value="${h.cedula}">${h.nombre} — ${h.cedula}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Hotel</label>
+      <select class="form-control" id="rHotel" onchange="updateRoomSelect()">
+        ${hoteles.map(h => `<option value="${h.nombre}">${h.nombre} (${h.tipo})</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Habitación (solo disponibles)</label>
+      <select class="form-control" id="rHabitacion">
+        ${availRooms.map(h => `<option value="${h.numero}">#${h.numero} — ${h.tipo} — ${h.hotelNombre} — $${h.precioNoche.toLocaleString()}/noche</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Empleado Responsable</label>
+      <select class="form-control" id="rEmpleado">
+        ${empleados.map(e => `<option value="${e.cedula}">${e.nombre} — ${e.cargo}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Fecha de Entrada</label><input class="form-control" type="date" id="rEntrada"></div>
+      <div class="form-group"><label>Fecha de Salida</label><input class="form-control" type="date" id="rSalida"></div>
+    </div>
+  `, `<button class="btn btn-outline" onclick="hideModal()">Cancelar</button><button class="btn btn-primary" onclick="saveReserva()">Crear Reserva</button>`);
+
+  // Filtrar habitaciones al cambiar hotel
+  updateRoomSelect();
+}
+
+function updateRoomSelect() {
+  const hotelName = document.getElementById('rHotel')?.value;
+  const select = document.getElementById('rHabitacion');
+  if (!select || !hotelName) return;
+  const avail = habitaciones.filter(h => h.estaDisponible && h.hotelNombre === hotelName);
+  if (avail.length === 0) {
+    select.innerHTML = '<option value="">No hay habitaciones disponibles en este hotel</option>';
+  } else {
+    select.innerHTML = avail.map(h => `<option value="${h.numero}">#${h.numero} — ${h.tipo} — $${h.precioNoche.toLocaleString()}/noche</option>`).join('');
+  }
+}
+
+function saveReserva() {
+  try {
+    const huespedCedula = document.getElementById('rHuesped').value;
+    const hotelNombre = document.getElementById('rHotel').value;
+    const habNumero = parseInt(document.getElementById('rHabitacion').value);
+    const empleadoCedula = document.getElementById('rEmpleado').value;
+    const entrada = document.getElementById('rEntrada').value;
+    const salida = document.getElementById('rSalida').value;
+
+    if (!entrada || !salida) { showToast('Las fechas son obligatorias', 'error'); return; }
+    if (!habNumero) { showToast('Seleccione una habitación', 'error'); return; }
+
+    const huesped = huespedes.find(h => h.cedula === huespedCedula);
+    const hotel = hoteles.find(h => h.nombre === hotelNombre);
+    const habitacion = habitaciones.find(h => h.numero === habNumero);
+    const empleado = empleados.find(e => e.cedula === empleadoCedula);
+
+    // Crear la reserva — Reserva.__init__() en Python
+    // Automáticamente marca la habitación como ocupada y reduce disponibilidad del hotel
+    const reserva = new Reserva(huesped, habitacion, hotel, empleado, parseDate(entrada), parseDate(salida));
+    reservas.push(reserva);
+
+    addLog("Reserva", "__init__", reserva.consultarInformacion());
+    hideModal();
+    showToast(`Reserva #${reserva.numeroReserva} creada para ${huesped.nombre}`, 'success');
+    renderCurrentSection();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function cancelarReserva(num) {
+  const reserva = reservas.find(r => r.numeroReserva === num);
+  if (!reserva) return;
+  showModal('Confirmar Cancelación', `
+    <p style="font-size:0.9rem">¿Está seguro de cancelar la <strong>Reserva #${reserva.numeroReserva}</strong> de ${reserva.huesped.nombre}?</p>
+    <p style="font-size:0.82rem;color:var(--muted);margin-top:8px">La habitación #${reserva.habitacion.numero} quedará disponible.</p>
+  `, `<button class="btn btn-outline" onclick="hideModal()">No, volver</button><button class="btn btn-danger" onclick="doCancelReserva(${num})">Sí, cancelar reserva</button>`);
+}
+function doCancelReserva(num) {
+  try {
+    const reserva = reservas.find(r => r.numeroReserva === num);
+    // reserva.cancelar() en Python — libera habitación y aumenta disponibilidad
+    reserva.cancelar();
+    hideModal();
+    showToast(`Reserva #${num} cancelada`, 'warning');
+    renderCurrentSection();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+function verInfoReserva(num) {
+  const r = reservas.find(x => x.numeroReserva === num);
+  if (r) showModal('Información de Reserva — Salida Python', `<pre style="font-family:'Courier New',monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:var(--fg)">${r.consultarInformacion()}</pre>`);
+}
+
+
+// ==================================================================
+// RENDER: FACTURAS
+// ==================================================================
+function renderFacturas() {
+  return `
+    <div class="toolbar">
+      <div></div>
+      <button class="btn btn-primary" onclick="openFacturarFromList()"><i class="fas fa-plus"></i> Generar Factura</button>
+    </div>
+    <div class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th># Factura</th>
+              <th>Reserva</th>
+              <th>Huésped</th>
+              <th>Hotel</th>
+              <th>Subtotal Hab.</th>
+              <th>Servicios Adic.</th>
+              <th>Total</th>
+              <th>Estado Pago</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${facturas.map(f => `
+              <tr>
+                <td style="font-weight:700;color:var(--accent)">${f.numeroFactura}</td>
+                <td>#${f.reserva.numeroReserva}</td>
+                <td style="font-weight:600">${f.reserva.huesped.nombre}</td>
+                <td>${f.reserva.hotel.nombre}</td>
+                <td>$${f.subtotalHabitacion.toLocaleString()}</td>
+                <td>$${f.serviciosAdicionales.toLocaleString()}</td>
+                <td style="font-weight:700">$${f.total.toLocaleString()}</td>
+                <td><span class="badge-status ${f.estadoPago}"><span class="badge-dot ${f.estadoPago}"></span> ${f.estadoPago}</span></td>
+                <td style="display:flex;gap:6px">
+                  <button class="btn-icon" title="Ver info Python" onclick="verInfoFactura(${f.numeroFactura})"><i class="fas fa-info-circle"></i></button>
+                  ${f.estadoPago === EstadoPago.PENDIENTE ? `<button class="btn btn-success btn-sm" onclick="doPagar(${f.numeroFactura})"><i class="fas fa-check"></i> Pagar</button>` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${facturas.length === 0 ? '<div class="empty-state"><i class="fas fa-file-invoice-dollar"></i><p>No hay facturas generadas</p></div>' : ''}
+    </div>
+  `;
+}
+
+function openFacturar(reservaNum) {
+  const reserva = reservas.find(r => r.numeroReserva === reservaNum);
+  if (!reserva) return;
+  showModal('Generar Factura — Check-out', `
+    <p style="font-size:0.88rem;margin-bottom:14px">Se generará la factura para la <strong>Reserva #${reserva.numeroReserva}</strong> de ${reserva.huesped.nombre}.</p>
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:16px">Esto realiza el check-out: la habitación #${reserva.habitacion.numero} quedará disponible.</p>
+    <div class="form-row">
+      <div class="form-group"><label>Habitación: ${reserva.numNoches} noches × $${reserva.habitacion.precioNoche.toLocaleString()}</label><input class="form-control" value="$${(reserva.habitacion.precioNoche * reserva.numNoches).toLocaleString()}" disabled></div>
+      <div class="form-group"><label>Servicios Adicionales</label><input class="form-control" type="number" id="fServicios" value="0" min="0" placeholder="0"></div>
+    </div>
+  `, `<button class="btn btn-outline" onclick="hideModal()">Cancelar</button><button class="btn btn-primary" onclick="doFacturar(${reservaNum})">Generar Factura</button>`);
+}
+
+function openFacturarFromList() {
+  const activas = reservas.filter(r => r.estaActiva);
+  if (activas.length === 0) { showToast('No hay reservas activas para facturar', 'warning'); return; }
+  showModal('Seleccionar Reserva para Facturar', `
+    <p style="font-size:0.88rem;margin-bottom:14px">Seleccione una reserva activa:</p>
+    ${activas.map(r => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
+        <div>
+          <div style="font-weight:600;font-size:0.88rem">#${r.numeroReserva} — ${r.huesped.nombre}</div>
+          <div style="font-size:0.78rem;color:var(--muted)">Hab. #${r.habitacion.numero} | ${r.hotel.nombre} | ${r.numNoches} noches</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="hideModal();setTimeout(()=>openFacturar(${r.numeroReserva}),200)">Facturar</button>
+      </div>
+    `).join('')}
+  `);
+}
+
+function doFacturar(reservaNum) {
+  try {
+    const reserva = reservas.find(r => r.numeroReserva === reservaNum);
+    const servicios = parseFloat(document.getElementById('fServicios')?.value || 0);
+    // FacturaHotel.__init__() en Python — marca habitación como disponible
+    const factura = new FacturaHotel(reserva, servicios);
+    facturas.push(factura);
+    addLog("FacturaHotel", "__init__", factura.consultarInformacion());
+    hideModal();
+    showToast(`Factura #${factura.numeroFactura} generada por $${factura.total.toLocaleString()}`, 'success');
+    renderCurrentSection();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function doPagar(numFactura) {
+  const factura = facturas.find(f => f.numeroFactura === numFactura);
+  if (!factura) return;
+  // factura.registrar_pago() en Python
+  factura.registrarPago();
+  showToast(`Factura #${numFactura} pagada exitosamente`, 'success');
+  renderCurrentSection();
+}
+
+function verInfoFactura(num) {
+  const f = facturas.find(x => x.numeroFactura === num);
+  if (f) showModal('Información de Factura — Salida Python', `<pre style="font-family:'Courier New',monospace;font-size:0.82rem;line-height:1.6;white-space:pre-wrap;color:var(--fg)">${f.consultarInformacion()}</pre>`);
+}
+
+
+// ==================================================================
+// INICIALIZACIÓN
+// ==================================================================
+initDemoData();
+renderCurrentSection();
+
+// Log inicial — Equivalente al bloque __main__ del código Python
+addLog("Sistema", "__main__", "Sistema de gestión hotelera iniciado.");
+addLog("Sistema", "__main__", `Hoteles: ${hoteles.map(h => h.nombre).join(', ')}`);
+addLog("Sistema", "__main__", `Habitaciones: ${habitaciones.length} registradas`);
+addLog("Sistema", "__main__", `Huéspedes: ${huespedes.map(h => h.nombre).join(', ')}`);
+addLog("Sistema", "__main__", `Empleados: ${empleados.map(e => e.nombre).join(', ')}`);
+
+// Renderizar dashboard inicial
+renderCurrentSection();
+</script>
+</body>
+</html>
