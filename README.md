@@ -6,7 +6,7 @@ GitHub PagesHTML5JavaScriptPython POO
 🌐 Acceso en Vivo
 El sistema está desplegado y listo para interactuar en GitHub Pages:
 
-https://tu-usuario.github.io/hotel/ (Reemplaza con tu URL real)
+https://jlarismendizdata-lang.github.io/POO-HOTEL---PROGRAMACION-1/
 
 📖 Contexto del Proyecto
 Este proyecto nace de la necesidad de presentar un sistema de gestión hotelera desarrollado en Python utilizando Programación Orientada a Objetos (POO). En lugar de limitar la presentación a la ejecución en terminal, se ha creado una beta interactiva web que replica exactamente la misma lógica, estructuras de datos y efectos colaterales del código original, pero con una interfaz visual profesional.
